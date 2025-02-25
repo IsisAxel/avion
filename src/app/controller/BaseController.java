@@ -21,11 +21,4 @@ public class BaseController
     {
         return new ModelView("view/admin/login.jsp");
     }
-
-    @Get
-    @URL(url = "/base/client")
-    public ModelView client()
-    {
-        return new ModelView("view/client/home.jsp");
-    }
 }

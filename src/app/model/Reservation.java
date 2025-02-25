@@ -1,17 +1,36 @@
 package app.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class Reservation {
     private int idReservation;
 
-    private Vol vol;
+    private int idVol;
+
+    public int getIdVol() {
+        return idVol;
+    }
+
+    public void setIdVol(int idVol) {
+        this.idVol = idVol;
+    }
 
     private int nombrePersonnes;
 
-    private Date dateReservation;
+    private LocalDateTime dateReservation;
 
     private double montantTotal;
+
+    private List<DetailReservation> detailReservations;
+
+    public List<DetailReservation> getDetailReservations() {
+        return detailReservations;
+    }
+
+    public void setDetailReservations(List<DetailReservation> detailReservations) {
+        this.detailReservations = detailReservations;
+    }
 
     public int getIdReservation() {
         return idReservation;
@@ -19,14 +38,6 @@ public class Reservation {
 
     public void setIdReservation(int idReservation) {
         this.idReservation = idReservation;
-    }
-
-    public Vol getVol() {
-        return vol;
-    }
-
-    public void setVol(Vol vol) {
-        this.vol = vol;
     }
 
     public int getNombrePersonnes() {
@@ -37,11 +48,11 @@ public class Reservation {
         this.nombrePersonnes = nombrePersonnes;
     }
 
-    public Date getDateReservation() {
+    public LocalDateTime getDateReservation() {
         return dateReservation;
     }
 
-    public void setDateReservation(Date dateReservation) {
+    public void setDateReservation(LocalDateTime dateReservation) {
         this.dateReservation = dateReservation;
     }
 

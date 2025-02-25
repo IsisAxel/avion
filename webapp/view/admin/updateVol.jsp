@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mettre à jour Vol</title>
+    <title>Mettre a jour Vol</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,7 +65,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Mettre à jour Vol</h1>
+        <h1>Mettre a jour Vol</h1>
         <form action="<%= request.getContextPath()%>/admin/vol/update" method="post">
             <input type="hidden" name="vol.idVol" value="<%= ((Vol) request.getAttribute("vol")).getIdVol() %>">
             <div class="form-group">
@@ -84,7 +84,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="villeDepart">Ville Départ</label>
+                <label for="villeDepart">Ville Depart</label>
                 <select id="villeDepart" name="vol.villeDepart.idVille">
                     <!-- Remplir avec les villes disponibles -->
                     <%
@@ -113,15 +113,15 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="dateDepart">Date Départ</label>
+                <label for="dateDepart">Date Depart</label>
                 <input type="datetime-local" id="dateDepart" name="vol.dateDepart" value="<%= ((Vol) request.getAttribute("vol")).getDateDepart().toString().replace(" ", "T") %>" required>
             </div>
             <div class="form-group">
-                <label for="dateArrive">Date Arrivée</label>
+                <label for="dateArrive">Date Arrivee</label>
                 <input type="datetime-local" id="dateArrive" name="vol.dateArrive" value="<%= ((Vol) request.getAttribute("vol")).getDateArrive().toString().replace(" ", "T") %>" required>
             </div>
             <div class="form-group">
-                <label>Types de Sièges</label>
+                <label>Types de Sieges</label>
                 <%
                     List<TypeSiege> typesSiege = (List<TypeSiege>) request.getAttribute("type_sieges");
                     List<VolDetails> volDetailsList = ((Vol) request.getAttribute("vol")).getVolDetails();
@@ -143,7 +143,7 @@
                 %>
             </div>
             <div class="form-group">
-                <label for="heureMaxReservation">Heure Max de Réservation</label>
+                <label for="heureMaxReservation">Heure Max de Reservation</label>
                 <input type="number" id="heureMaxReservation" name="vol.regleVol.heureMaxReservation" value="<%= ((Vol) request.getAttribute("vol")).getRegleVol().getHeureMaxReservation() %>" required>
             </div>
             <div class="form-group">
@@ -151,7 +151,7 @@
                 <input type="number" id="heureMaxAnnulation" name="vol.regleVol.heureMaxAnnulation" value="<%= ((Vol) request.getAttribute("vol")).getRegleVol().getHeureMaxAnnulation() %>" required>
             </div>
             <div style="text-align: center;">
-                <button type="submit" class="button">Mettre à jour</button>
+                <button type="submit" class="button">Mettre a jour</button>
             </div>
         </form>
     </div>

@@ -69,15 +69,15 @@ CREATE TABLE vol_details (
 
 CREATE TABLE regle_vol (
     id_regle_vol SERIAL PRIMARY KEY,
-    id_vol INT NOT NULL REFERENCES vol(id_vol) ON DELETE CASCADE,  -- Chaque vol a ses propres règles
-    heure_max_reservation INT NOT NULL CHECK (heure_max_reservation > 0),  -- Nombre d'heures max avant le vol pour réserver
+    id_vol INT NOT NULL REFERENCES vol(id_vol) ON DELETE CASCADE,  -- Chaque vol a ses propres regles
+    heure_max_reservation INT NOT NULL CHECK (heure_max_reservation > 0),  -- Nombre d'heures max avant le vol pour reserver
     heure_max_annulation INT NOT NULL CHECK (heure_max_annulation > 0)  -- Nombre d'heures max avant le vol pour annuler
 );
 
 CREATE TABLE reservation (
     id_reservation SERIAL PRIMARY KEY,
-    id_vol INT NOT NULL REFERENCES vol(id_vol),  -- Vol associé   
-    nombre_personnes INT CHECK (nombre_personnes > 0), -- Nombre de passagers pour cette réservation
+    id_vol INT NOT NULL REFERENCES vol(id_vol),  -- Vol associe   
+    nombre_personnes INT CHECK (nombre_personnes > 0), -- Nombre de passagers pour cette reservation
     date_reservation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     montant_total DECIMAL(10, 2)
 );
@@ -86,8 +86,6 @@ CREATE TABLE detail_reservation (
     id_detail SERIAL PRIMARY KEY,
     id_reservation INT NOT NULL REFERENCES reservation(id_reservation) ON DELETE CASCADE,
     nom_complet VARCHAR(255) NOT NULL,
-    date_naissance DATE NOT NULL,
-    numero_passport VARCHAR(30) UNIQUE NOT NULL,
     id_type_siege INT NOT NULL REFERENCES type_siege(id_type_siege),
     prix DECIMAL(10, 2) NOT NULL CHECK(prix > 0)
 );

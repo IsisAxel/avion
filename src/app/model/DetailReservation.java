@@ -1,7 +1,5 @@
 package app.model;
 
-import java.math.BigDecimal;
-import java.util.Date;
 
 public class DetailReservation {
     private int idDetail;
@@ -10,13 +8,9 @@ public class DetailReservation {
 
     private String nomComplet;
 
-    private Date dateNaissance;
-
-    private String numeroPassport;
-
     private TypeSiege typeSiege;
 
-    private BigDecimal prix;
+    private double prix;
 
     public int getIdDetail() {
         return idDetail;
@@ -42,22 +36,6 @@ public class DetailReservation {
         this.nomComplet = nomComplet;
     }
 
-    public Date getDateNaissance() {
-        return dateNaissance;
-    }
-
-    public void setDateNaissance(Date dateNaissance) {
-        this.dateNaissance = dateNaissance;
-    }
-
-    public String getNumeroPassport() {
-        return numeroPassport;
-    }
-
-    public void setNumeroPassport(String numeroPassport) {
-        this.numeroPassport = numeroPassport;
-    }
-
     public TypeSiege getTypeSiege() {
         return typeSiege;
     }
@@ -66,11 +44,11 @@ public class DetailReservation {
         this.typeSiege = typeSiege;
     }
 
-    public BigDecimal getPrix() {
+    public double getPrix() {
         return prix;
     }
 
-    public void setPrix(BigDecimal prix) {
+    public void setPrix(double prix) {
         this.prix = prix;
     }
 

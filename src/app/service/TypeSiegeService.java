@@ -30,4 +30,24 @@ public class TypeSiegeService {
         
         return typeSieges;
     }
+
+    public static TypeSiege getTypeSiegeById(Connection connection, int idTypeSiege) {
+        String query = "SELECT id_type_siege, type FROM type_siege WHERE id_type_siege = ?";
+        TypeSiege typeSiege = null;
+        
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, idTypeSiege);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    typeSiege = new TypeSiege();
+                    typeSiege.setIdTypeSiege(resultSet.getInt("id_type_siege"));
+                    typeSiege.setType(resultSet.getString("type"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return typeSiege;
+    }
 }

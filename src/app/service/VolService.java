@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +13,9 @@ import java.util.Map;
 
 import app.model.Vol;
 import app.model.VolDetails;
+import app.model.DetailReservation;
 import app.model.RegleVol;
+import app.model.Reservation;
 import app.model.TypeSiege;
 
 public class VolService {
@@ -322,5 +325,258 @@ public class VolService {
         }
 
         return vols;
+    }
+
+    public static boolean reserveVol(Connection connection, Reservation reservation, List<DetailReservation> detailReservations) {
+        String checkAvailabilityQuery = "SELECT place_dispo FROM vol_details WHERE id_vol = ? AND id_type_siege = ?";
+        String getVolQuery = "SELECT vol.id_vol , regle_vol.id_vol , date_depart, heure_max_reservation FROM vol JOIN regle_vol ON vol.id_vol=regle_vol.id_vol WHERE vol.id_vol = ?";
+        String insertReservationQuery = "INSERT INTO reservation (id_vol , nombre_personnes, date_reservation, montant_total) VALUES (? , ?, ?, ?)";
+        String insertDetailReservationQuery = "INSERT INTO detail_reservation (id_reservation, nom_complet, id_type_siege, prix) VALUES (?, ?, ?, ?)";
+
+        try {
+            connection.setAutoCommit(false);
+
+            // Get vol details
+            Timestamp dateDepart = null;
+            int heureMaxReservation = 0;
+            try (PreparedStatement volStmt = connection.prepareStatement(getVolQuery)) {
+                volStmt.setInt(1, reservation.getIdVol());
+                try (ResultSet rs = volStmt.executeQuery()) {
+                    if (rs.next()) {
+                        dateDepart = rs.getTimestamp("date_depart");
+                        heureMaxReservation = rs.getInt("heure_max_reservation");
+                    } else {
+                        connection.rollback();
+                        return false; // No such vol record found
+                    }
+                }
+            }
+
+            // Check reservation date
+            Timestamp maxReservationDate = new Timestamp(dateDepart.getTime() - heureMaxReservation * 3600 * 1000);
+            if (Timestamp.valueOf(reservation.getDateReservation()).after(maxReservationDate)) {
+                connection.rollback();
+                return false; // Reservation date is too late
+            }
+
+            // Check availability
+            Map<Integer, Integer> seatCounts = new HashMap<>();
+            for (DetailReservation detail : detailReservations) {
+                int typeSiegeId = detail.getTypeSiege().getIdTypeSiege();
+                seatCounts.put(typeSiegeId, seatCounts.getOrDefault(typeSiegeId, 0) + 1);
+            }
+
+            for (Map.Entry<Integer, Integer> entry : seatCounts.entrySet()) {
+                int typeSiegeId = entry.getKey();
+                int requiredSeats = entry.getValue();
+
+                try (PreparedStatement checkStmt = connection.prepareStatement(checkAvailabilityQuery)) {
+                    checkStmt.setInt(1, reservation.getIdVol());
+                    checkStmt.setInt(2, typeSiegeId);
+                    try (ResultSet rs = checkStmt.executeQuery()) {
+                        if (rs.next()) {
+                            int availableSeats = rs.getInt("place_dispo");
+                            if (availableSeats < requiredSeats) {
+                                connection.rollback();
+                                return false; // Not enough seats available for this type of seat
+                            }
+                        } else {
+                            connection.rollback();
+                            return false; // No such vol_details record found
+                        }
+                    }
+                }
+            }
+
+            // Insert reservation
+            try (PreparedStatement reservationStmt = connection.prepareStatement(insertReservationQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                reservationStmt.setInt(1, reservation.getIdVol());
+                reservationStmt.setInt(2, reservation.getNombrePersonnes());
+                reservationStmt.setTimestamp(3, Timestamp.valueOf(reservation.getDateReservation()));
+                reservationStmt.setDouble(4, reservation.getMontantTotal());
+                reservationStmt.executeUpdate();
+
+                try (ResultSet generatedKeys = reservationStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        int reservationId = generatedKeys.getInt(1);
+                        reservation.setIdReservation(reservationId);
+
+                        // Insert detail reservations
+                        try (PreparedStatement detailStmt = connection.prepareStatement(insertDetailReservationQuery)) {
+                            for (DetailReservation detail : detailReservations) {
+                                detailStmt.setInt(1, reservationId);
+                                detailStmt.setString(2, detail.getNomComplet());
+                                detailStmt.setInt(3, detail.getTypeSiege().getIdTypeSiege());
+                                detailStmt.setDouble(4, detail.getPrix());
+                                detailStmt.addBatch();
+                            }
+                            detailStmt.executeBatch();
+                        }
+                    } else {
+                        connection.rollback();
+                        return false; // Failed to insert reservation
+                    }
+                }
+            }
+
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            return false;
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException autoCommitEx) {
+                autoCommitEx.printStackTrace();
+            }
+        }
+    }
+
+    public static List<Reservation> getAllReservation(Connection connection) {
+        List<Reservation> reservations = new ArrayList<>();
+        String query = "SELECT r.id_reservation, r.id_vol, r.nombre_personnes, r.date_reservation, r.montant_total, "
+                     + "d.id_detail, d.nom_complet, d.id_type_siege, d.prix "
+                     + "FROM reservation r "
+                     + "LEFT JOIN detail_reservation d ON r.id_reservation = d.id_reservation";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                int reservationId = resultSet.getInt("id_reservation");
+                Reservation reservation = findReservationById(reservations, reservationId);
+
+                if (reservation == null) {
+                    reservation = new Reservation();
+                    reservation.setIdReservation(reservationId);
+                    reservation.setIdVol(resultSet.getInt("id_vol"));
+                    reservation.setNombrePersonnes(resultSet.getInt("nombre_personnes"));
+                    reservation.setDateReservation(resultSet.getTimestamp("date_reservation").toLocalDateTime());
+                    reservation.setMontantTotal(resultSet.getDouble("montant_total"));
+                    reservation.setDetailReservations(new ArrayList<>());
+                    reservations.add(reservation);
+                }
+
+                DetailReservation detail = new DetailReservation();
+                detail.setIdDetail(resultSet.getInt("id_detail"));
+                detail.setNomComplet(resultSet.getString("nom_complet"));
+                detail.setTypeSiege(TypeSiegeService.getTypeSiegeById(connection, resultSet.getInt("id_type_siege")));
+                detail.setPrix(resultSet.getDouble("prix"));
+                detail.setReservation(reservation);
+
+                reservation.getDetailReservations().add(detail);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return reservations;
+    }
+
+    private static Reservation findReservationById(List<Reservation> reservations, int idReservation) {
+        for (Reservation reservation : reservations) {
+            if (reservation.getIdReservation() == idReservation) {
+                return reservation;
+            }
+        }
+        return null;
+    }
+
+    public static Reservation getReservationById(Connection connection, int idReservation) {
+        String query = "SELECT r.id_reservation, r.id_vol, r.nombre_personnes, r.date_reservation, r.montant_total, "
+                     + "d.id_detail, d.nom_complet, d.id_type_siege, d.prix "
+                     + "FROM reservation r "
+                     + "LEFT JOIN detail_reservation d ON r.id_reservation = d.id_reservation "
+                     + "WHERE r.id_reservation = ?";
+        Reservation reservation = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, idReservation);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    if (reservation == null) {
+                        reservation = new Reservation();
+                        reservation.setIdReservation(resultSet.getInt("id_reservation"));
+                        reservation.setIdVol(resultSet.getInt("id_vol"));
+                        reservation.setNombrePersonnes(resultSet.getInt("nombre_personnes"));
+                        reservation.setDateReservation(resultSet.getTimestamp("date_reservation").toLocalDateTime());
+                        reservation.setMontantTotal(resultSet.getDouble("montant_total"));
+                        reservation.setDetailReservations(new ArrayList<>());
+                    }
+
+                    DetailReservation detail = new DetailReservation();
+                    detail.setIdDetail(resultSet.getInt("id_detail"));
+                    detail.setNomComplet(resultSet.getString("nom_complet"));
+                    detail.setTypeSiege(TypeSiegeService.getTypeSiegeById(connection, resultSet.getInt("id_type_siege")));
+                    detail.setPrix(resultSet.getDouble("prix"));
+                    detail.setReservation(reservation);
+
+                    reservation.getDetailReservations().add(detail);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return reservation;
+    }
+
+    public static void cancelReservationDetails(Connection connection, int idReservation, List<Integer> detailsToCancel) throws SQLException {
+        String deleteDetailQuery = "DELETE FROM detail_reservation WHERE id_detail = ?";
+        String checkRemainingDetailsQuery = "SELECT COUNT(*) FROM detail_reservation WHERE id_reservation = ?";
+        String deleteReservationQuery = "DELETE FROM reservation WHERE id_reservation = ?";
+
+        try {
+            connection.setAutoCommit(false);
+
+            // Delete the specified detail reservations
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteDetailQuery)) {
+                for (int idDetail : detailsToCancel) {
+                    preparedStatement.setInt(1, idDetail);
+                    preparedStatement.addBatch();
+                }
+                preparedStatement.executeBatch();
+            }
+
+            // Check if there are any remaining detail reservations for the given reservation
+            boolean hasRemainingDetails = false;
+            try (PreparedStatement checkStmt = connection.prepareStatement(checkRemainingDetailsQuery)) {
+                checkStmt.setInt(1, idReservation);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next()) {
+                        hasRemainingDetails = rs.getInt(1) > 0;
+                    }
+                }
+            }
+
+            // If no remaining detail reservations, delete the reservation
+            if (!hasRemainingDetails) {
+                try (PreparedStatement deleteStmt = connection.prepareStatement(deleteReservationQuery)) {
+                    deleteStmt.setInt(1, idReservation);
+                    deleteStmt.executeUpdate();
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException autoCommitEx) {
+                autoCommitEx.printStackTrace();
+            }
+        }
     }
 }

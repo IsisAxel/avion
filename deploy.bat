@@ -10,20 +10,20 @@ set LIB_DIR=%WEBAPP_DIR%\WEB-INF\lib
 set TEMP_WAR_DIR=war_temp
 set TEMP_SRC_DIR=src_temp
 
-REM Chemin vers le dossier de déploiement de tomcat
+REM Chemin vers le dossier de deploiement de tomcat
 set WILDFLY_DEPLOY_DIR=C:\software\apache-tomcat-9.0.100\webapps
 
-REM Vérifie si le dossier build existe, sinon le crée
+REM Verifie si le dossier build existe, sinon le cree
 if not exist "%BUILD_DIR%" (
     mkdir "%BUILD_DIR%"
 )
 
-REM Supprimer le dossier temporaire source précédent s'il existe
+REM Supprimer le dossier temporaire source precedent s'il existe
 if exist "%TEMP_SRC_DIR%" (
     rmdir /s /q "%TEMP_SRC_DIR%"
 )
 
-REM Créer un dossier temporaire pour les fichiers Java
+REM Creer un dossier temporaire pour les fichiers Java
 mkdir "%TEMP_SRC_DIR%"
 
 REM Copier uniquement les fichiers .java dans le dossier temporaire
@@ -43,7 +43,7 @@ for %%j in ("%LIB_DIR%\*.jar") do (
     set CLASSPATH=!CLASSPATH!;%%j
 )
 
-REM Activer l'expansion retardée
+REM Activer l'expansion retardee
 setlocal enabledelayedexpansion
 
 REM Construire une liste des fichiers Java pour javac
@@ -60,28 +60,28 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 endlocal
-echo Compilation réussie.
+echo Compilation reussie.
 
 REM Supprimer le dossier temporaire source
 rmdir /s /q "%TEMP_SRC_DIR%"
 
-REM Supprimer le dossier temporaire précédent s'il existe
+REM Supprimer le dossier temporaire precedent s'il existe
 if exist "%TEMP_WAR_DIR%" (
     rmdir /s /q "%TEMP_WAR_DIR%"
 )
 
-REM Créer le dossier temporaire pour l'assemblage du WAR
+REM Creer le dossier temporaire pour l'assemblage du WAR
 mkdir "%TEMP_WAR_DIR%"
 
-REM Copier les fichiers compilés (classes) dans le dossier temporaire
+REM Copier les fichiers compiles (classes) dans le dossier temporaire
 xcopy "%BUILD_DIR%" "%TEMP_WAR_DIR%\WEB-INF\classes" /E /I /Q
 
 
 REM Copier le contenu de WEBAPP (fichiers JSP, HTML, etc.) dans le dossier temporaire
 xcopy "%WEBAPP_DIR%" "%TEMP_WAR_DIR%" /E /I /Q
 
-REM Créer le fichier WAR à partir du dossier temporaire
-echo Création du fichier WAR...
+REM Creer le fichier WAR a partir du dossier temporaire
+echo Creation du fichier WAR...
 cd "%TEMP_WAR_DIR%"
 jar -cvf "../%WAR_NAME%" *
 cd ..
@@ -89,15 +89,15 @@ cd ..
 REM Supprimer le dossier temporaire
 rmdir /s /q "%TEMP_WAR_DIR%"
 
-REM Vérifier si le fichier WAR a été créé avec succès
+REM Verifier si le fichier WAR a ete cree avec succes
 if exist "%WAR_NAME%" (
-    echo Fichier WAR créé avec succès : %WAR_NAME%
+    echo Fichier WAR cree avec succes : %WAR_NAME%
 ) else (
-    echo Erreur lors de la création du fichier WAR.
+    echo Erreur lors de la creation du fichier WAR.
     exit /b 1
 )
 
-REM Copier le fichier WAR dans le dossier de déploiement de WildFly
+REM Copier le fichier WAR dans le dossier de deploiement de WildFly
 if exist "%WILDFLY_DEPLOY_DIR%" (
     echo Copie du fichier WAR vers Tomcat...
     copy "%WAR_NAME%" "%WILDFLY_DEPLOY_DIR%\" > nul
@@ -105,9 +105,9 @@ if exist "%WILDFLY_DEPLOY_DIR%" (
         echo Erreur lors de la copie vers Tomcat.
         exit /b 1
     ) else (
-        echo Déploiement vers Tomcat réussi.
+        echo Deploiement vers Tomcat reussi.
     )
 ) else (
-    echo Dossier de déploiement de Tomcat introuvable : %WILDFLY_DEPLOY_DIR%
+    echo Dossier de deploiement de Tomcat introuvable : %WILDFLY_DEPLOY_DIR%
     exit /b 1
 )

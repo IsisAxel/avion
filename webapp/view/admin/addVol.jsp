@@ -79,7 +79,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="villeDepart">Ville Départ</label>
+                <label for="villeDepart">Ville Depart</label>
                 <select id="villeDepart" name="vol.villeDepart.idVille">
                     <!-- Remplir avec les villes disponibles -->
                     <%
@@ -106,15 +106,15 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="dateDepart">Date Départ</label>
+                <label for="dateDepart">Date Depart</label>
                 <input type="datetime-local" id="dateDepart" name="vol.dateDepart" required>
             </div>
             <div class="form-group">
-                <label for="dateArrive">Date Arrivée</label>
+                <label for="dateArrive">Date Arrivee</label>
                 <input type="datetime-local" id="dateArrive" name="vol.dateArrive" required>
             </div>
             <div class="form-group">
-                <label>Types de Sièges</label>
+                <label>Types de Sieges</label>
                 <%
                     List<TypeSiege> typesSiege = (List<TypeSiege>) request.getAttribute("type_sieges");
                     int i = 0;
@@ -134,7 +134,7 @@
                 %>
             </div>
             <div class="form-group">
-                <label for="heureMaxReservation">Heure Max de Réservation</label>
+                <label for="heureMaxReservation">Heure Max de Reservation</label>
                 <input type="number" id="heureMaxReservation" name="vol.regleVol.heureMaxReservation" required>
             </div>
             <div class="form-group">
