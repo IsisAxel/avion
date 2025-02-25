@@ -41,7 +41,7 @@
     <div class="container">
         <h1>Welcome</h1>
         <a href="<%= request.getContextPath()%>/base/admin" class="button">Admin</a>
-        <a href="<%= request.getContextPath()%>/base/client" class="button">Client</a>
+        <a href="<%= request.getContextPath()%>/client/vol/all" class="button">Client</a>
     </div>
 </body>
 </html>

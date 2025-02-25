@@ -101,7 +101,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="villeDepart">Ville Départ</label>
+                <label for="villeDepart">Ville Depart</label>
                 <select id="villeDepart" name="vol.villeDepart.idVille">
                     <option value="0">Toutes</option>
                     <%
@@ -129,11 +129,11 @@
             </div>
 
             <div class="form-group">
-                <label for="dateDepart">Date Départ</label>
+                <label for="dateDepart">Date Depart</label>
                 <input type="datetime-local" id="dateDepart" name="vol.dateDepart" value="<%= oldDate %>">
             </div>
             <div class="form-group">
-                <label for="dateArrive">Date Arrivée</label>
+                <label for="dateArrive">Date Arrivee</label>
                 <input type="datetime-local" id="dateArrive" name="vol.dateArrive" value="<%= futureDate %>">
             </div>
 
@@ -148,10 +148,10 @@
                 <tr>
                     <th>Vol</th>
                     <th>Avion</th>
-                    <th>Ville Départ</th>
+                    <th>Ville Depart</th>
                     <th>Ville Destination</th>
-                    <th>Date Départ</th>
-                    <th>Date Arrivée</th>
+                    <th>Date Depart</th>
+                    <th>Date Arrivee</th>
                     <th>Heure de Reservation max</th>
                     <th>Heure Annulation Max</th>
                     <th>Details</th>
@@ -177,7 +177,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>ID Type Siège</th>
+                                    <th>ID Type Siege</th>
                                     <th>Prix</th>
                                     <th>Places Disponibles</th>
                                 </tr>

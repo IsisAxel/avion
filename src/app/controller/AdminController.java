@@ -125,7 +125,7 @@ public class AdminController
             } catch (Exception e) {
                 e.printStackTrace();
                 ModelView modelView = new ModelView("view/admin/updateVol.jsp");
-                modelView.addObject("error", "Erreur lors de la mise à jour");
+                modelView.addObject("error", "Erreur lors de la mise a jour");
                 modelView.addObject("type_sieges", TypeSiegeService.getAllTypeSiege(connection));
                 modelView.addObject("avions", AvionService.getAllAvions(connection));
                 modelView.addObject("villes", VilleService.getAllVilles(connection));

@@ -100,4 +100,12 @@ public class Vol {
         this.dateArrive = dateArrive;
     }
 
+    public VolDetails getVolDetailsByIdTypeSiege(int idTypeSiege) {
+        for (VolDetails vd : volDetails) {
+            if (vd.getTypeSiege().getIdTypeSiege() == idTypeSiege) {
+                return vd;
+            }
+        }
+        return null;
+    }
 }

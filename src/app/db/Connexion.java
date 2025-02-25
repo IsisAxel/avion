@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.postgresql.Driver;
-
 public class Connexion {
 
     private static final String DB_URL = "jdbc:postgresql://localhost:5432/avion";
