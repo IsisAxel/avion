@@ -14,6 +14,21 @@ public class Avion {
 
     private int nombreMaxPassager;
 
+    public Avion(int idAvion, String compagnie, String modele, Date dateFabrication, int nombreMaxPassager) {
+        this.idAvion = idAvion;
+        this.compagnie = compagnie;
+        this.modele = modele;
+        this.dateFabrication = dateFabrication;
+        this.nombreMaxPassager = nombreMaxPassager;
+    }
+
+    public Avion(int idAvion) {
+        this.idAvion = idAvion;
+    }
+
+    public Avion() {
+    }
+
     public int getIdAvion() {
         return idAvion;
     }

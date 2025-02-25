@@ -53,7 +53,7 @@ for %%f in ("%TEMP_SRC_DIR%\*.java") do (
 )
 
 REM Lancer la compilation
-javac -d "%BUILD_DIR%" -cp "%LIB_DIR%\*" !JAVA_FILES!
+javac -parameters -d "%BUILD_DIR%" -cp "%LIB_DIR%\*" !JAVA_FILES!
 if %ERRORLEVEL% neq 0 (
     echo Erreur lors de la compilation. Arrêt du script.
     endlocal
