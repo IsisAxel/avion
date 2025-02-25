@@ -9,6 +9,20 @@ public class Ville {
 
     private String imageUrl;
 
+    public Ville(int idVille, String nom, String pays, String imageUrl) {
+        this.idVille = idVille;
+        this.nom = nom;
+        this.pays = pays;
+        this.imageUrl = imageUrl;
+    }
+
+    public Ville(int idVille) {
+        this.idVille = idVille;
+    }
+
+    public Ville() {
+    }
+
     public int getIdVille() {
         return idVille;
     }

@@ -5,6 +5,18 @@ public class TypeSiege {
 
     private String type;
 
+    public TypeSiege(int idTypeSiege) {
+        this.idTypeSiege = idTypeSiege;
+    }
+
+    public TypeSiege(int idTypeSiege, String type) {
+        this.idTypeSiege = idTypeSiege;
+        this.type = type;
+    }
+
+    public TypeSiege() {
+    }
+
     public int getIdTypeSiege() {
         return idTypeSiege;
     }

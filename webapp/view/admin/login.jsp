@@ -52,8 +52,8 @@
     <div class="login-container">
         <h1>Admin Login</h1>
         <form action="<%= request.getContextPath()%>/admin/login" method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
+            <input type="text" name="admin.username" placeholder="Username" required>
+            <input type="password" name="admin.password" placeholder="Password" required>
             <button type="submit">Login</button>
         </form>
     </div>

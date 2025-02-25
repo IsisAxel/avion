@@ -3,8 +3,6 @@ package app.model;
 public class RegleVol {
     private int idRegleVol;
 
-    private Vol vol;
-
     private int heureMaxReservation;
 
     private int heureMaxAnnulation;
@@ -15,14 +13,6 @@ public class RegleVol {
 
     public void setIdRegleVol(int idRegleVol) {
         this.idRegleVol = idRegleVol;
-    }
-
-    public Vol getVol() {
-        return vol;
-    }
-
-    public void setVol(Vol vol) {
-        this.vol = vol;
     }
 
     public int getHeureMaxReservation() {

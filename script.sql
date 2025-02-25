@@ -58,24 +58,14 @@ CREATE TABLE vol (
 );
 
 -- montant du vol par siege
-CREATE TABLE vol_prix (
+CREATE TABLE vol_details (
     id_vol_prix SERIAL PRIMARY KEY,
     id_vol INT REFERENCES vol (id_vol),
     id_type_siege INT REFERENCES type_siege (id_type_siege),
-    prix NUMERIC NOT NULL,
-    CHECK(prix > 0)
+    prix NUMERIC NOT NULL CHECK(prix > 0),
+    place_dispo INT NOT NULL CHECK(place_dispo >= 0)
 );
 
-
--- Trigger pour inserer dans la table vol_places a chaque insertion de vol 
-
-CREATE TABLE vol_place (
-    id_vol_place SERIAL PRIMARY KEY,
-    id_vol INT REFERENCES vol (id_vol),
-    id_type_siege INT REFERENCES type_siege (id_type_siege),
-    place_dispo INT NOT NULL,
-    CHECK(place_dispo >= 0)
-);
 
 CREATE TABLE regle_vol (
     id_regle_vol SERIAL PRIMARY KEY,

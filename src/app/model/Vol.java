@@ -1,7 +1,7 @@
 package app.model;
 
-
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class Vol {
     private int idVol;
@@ -12,9 +12,33 @@ public class Vol {
 
     private Ville villeDestination;
 
-    private Timestamp dateDepart;
+    private LocalDateTime dateDepart;
 
-    private Timestamp dateArrive;
+    private LocalDateTime dateArrive;
+
+    private List<VolDetails> volDetails;
+
+    private RegleVol regleVol;
+
+
+    public RegleVol getRegleVol() {
+        return regleVol;
+    }
+
+
+    public void setRegleVol(RegleVol regleVol) {
+        this.regleVol = regleVol;
+    }
+
+
+    public List<VolDetails> getVolDetails() {
+        return volDetails;
+    }
+
+
+    public void setVolDetails(List<VolDetails> volDetails) {
+        this.volDetails = volDetails;
+    }
 
 
     public int getIdVol() {
@@ -57,22 +81,22 @@ public class Vol {
     }
 
 
-    public Timestamp getDateDepart() {
+    public LocalDateTime getDateDepart() {
         return dateDepart;
     }
 
 
-    public void setDateDepart(Timestamp dateDepart) {
+    public void setDateDepart(LocalDateTime dateDepart) {
         this.dateDepart = dateDepart;
     }
 
 
-    public Timestamp getDateArrive() {
+    public LocalDateTime getDateArrive() {
         return dateArrive;
     }
 
 
-    public void setDateArrive(Timestamp dateArrive) {
+    public void setDateArrive(LocalDateTime dateArrive) {
         this.dateArrive = dateArrive;
     }
 
