@@ -84,6 +84,22 @@
 <body>
     <div class="container">
         <h1>Liste des Vols</h1>
+        <%
+            String error = (String) request.getAttribute("error");
+            String message = (String) request.getAttribute("message");
+        %>
+
+        <% if (error != null) { %>
+            <div style="color: #fff; background-color: #e74c3c; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <% if (message != null) { %>
+            <div style="color: #fff; background-color: #2ecc71; padding: 10px; border-radius: 5px;">
+                <%= message %>
+            </div>
+        <% } %>
 
         <form action="<%= request.getContextPath()%>/client/vol/search" method="post">
             <div class="form-group">
@@ -184,6 +200,7 @@
                                     <th>ID Type Siege</th>
                                     <th>Prix</th>
                                     <th>Places Disponibles</th>
+                                    <th>Places Restantes</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -195,6 +212,7 @@
                                     <td><%= details.getTypeSiege().getIdTypeSiege() %></td>
                                     <td><%= details.getPrix() %></td>
                                     <td><%= details.getPlaceDispo() %></td>
+                                    <td><%= details.getPlaceRestante() %></td>
                                 </tr>
                                 <%
                                     }

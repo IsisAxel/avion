@@ -6,6 +6,15 @@ public class VolDetails {
     private TypeSiege typeSiege;
 
     private int placeDispo;
+    private int placeRestante;
+
+    public int getPlaceRestante() {
+        return placeRestante;
+    }
+
+    public void setPlaceRestante(int placeRestante) {
+        this.placeRestante = placeRestante;
+    }
 
     private double prix;
 

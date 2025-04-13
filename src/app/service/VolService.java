@@ -88,20 +88,24 @@ public class VolService {
     public static List<Vol> getAllVol(Connection connection) {
         String getAllVolQuery = "SELECT v.id_vol, v.id_avion, v.id_ville_depart, v.id_ville_destination, v.date_depart, v.date_arrive, "
                               + "vd.id_vol_prix, vd.id_type_siege, vd.prix, vd.place_dispo, "
-                              + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation "
+                              + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation, "
+                              + "(vd.place_dispo - COALESCE(SUM(CASE WHEN dr.id_type_siege = vd.id_type_siege THEN 1 ELSE 0 END), 0)) AS place_restante "
                               + "FROM vol v "
                               + "LEFT JOIN vol_details vd ON v.id_vol = vd.id_vol "
-                              + "LEFT JOIN regle_vol rv ON v.id_vol = rv.id_vol";
-        
+                              + "LEFT JOIN regle_vol rv ON v.id_vol = rv.id_vol "
+                              + "LEFT JOIN reservation r ON v.id_vol = r.id_vol "
+                              + "LEFT JOIN detail_reservation dr ON r.id_reservation = dr.id_reservation "
+                              + "GROUP BY v.id_vol, vd.id_vol_prix, vd.id_type_siege, rv.id_regle_vol, vd.place_dispo";
+    
         Map<Integer, Vol> volMap = new HashMap<>();
-        
+    
         try (PreparedStatement statement = connection.prepareStatement(getAllVolQuery);
              ResultSet resultSet = statement.executeQuery()) {
-            
+    
             while (resultSet.next()) {
                 int volId = resultSet.getInt("id_vol");
                 Vol vol = volMap.get(volId);
-                
+    
                 if (vol == null) {
                     vol = new Vol();
                     vol.setIdVol(volId);
@@ -111,42 +115,49 @@ public class VolService {
                     vol.setDateDepart(resultSet.getTimestamp("date_depart").toLocalDateTime());
                     vol.setDateArrive(resultSet.getTimestamp("date_arrive").toLocalDateTime());
                     vol.setVolDetails(new ArrayList<>());
-
+    
                     RegleVol regleVol = new RegleVol();
                     regleVol.setIdRegleVol(resultSet.getInt("id_regle_vol"));
                     regleVol.setHeureMaxReservation(resultSet.getInt("heure_max_reservation"));
                     regleVol.setHeureMaxAnnulation(resultSet.getInt("heure_max_annulation"));
                     vol.setRegleVol(regleVol);
-
+    
                     volMap.put(volId, vol);
                 }
-                
+    
                 VolDetails volDetails = new VolDetails();
                 volDetails.setIdVolDetails(resultSet.getInt("id_vol_prix"));
                 volDetails.setTypeSiege(new TypeSiege(resultSet.getInt("id_type_siege")));
                 volDetails.setPrix(resultSet.getDouble("prix"));
                 volDetails.setPlaceDispo(resultSet.getInt("place_dispo"));
-                
+    
+                // Calculer et définir les places restantes pour ce type de siège
+                volDetails.setPlaceRestante(resultSet.getInt("place_restante"));
+    
                 vol.getVolDetails().add(volDetails);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+    
         return new ArrayList<>(volMap.values());
     }
 
     public static Vol getVolById(Connection connection, int idVol) {
         String getVolByIdQuery = "SELECT v.id_vol, v.id_avion, v.id_ville_depart, v.id_ville_destination, v.date_depart, v.date_arrive, "
                                + "vd.id_vol_prix, vd.id_type_siege, vd.prix, vd.place_dispo, "
-                               + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation "
+                               + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation, "
+                               + "(vd.place_dispo - COALESCE(SUM(CASE WHEN dr.id_type_siege = vd.id_type_siege THEN 1 ELSE 0 END), 0)) AS place_restante "
                                + "FROM vol v "
                                + "LEFT JOIN vol_details vd ON v.id_vol = vd.id_vol "
                                + "LEFT JOIN regle_vol rv ON v.id_vol = rv.id_vol "
-                               + "WHERE v.id_vol = ?";
-        
+                               + "LEFT JOIN reservation r ON v.id_vol = r.id_vol "
+                               + "LEFT JOIN detail_reservation dr ON r.id_reservation = dr.id_reservation "
+                               + "WHERE v.id_vol = ? "
+                               + "GROUP BY v.id_vol, vd.id_vol_prix, vd.id_type_siege, rv.id_regle_vol, vd.place_dispo";
+    
         Vol vol = null;
-        
+    
         try (PreparedStatement statement = connection.prepareStatement(getVolByIdQuery)) {
             statement.setInt(1, idVol);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -160,27 +171,30 @@ public class VolService {
                         vol.setDateDepart(resultSet.getTimestamp("date_depart").toLocalDateTime());
                         vol.setDateArrive(resultSet.getTimestamp("date_arrive").toLocalDateTime());
                         vol.setVolDetails(new ArrayList<>());
-
+    
                         RegleVol regleVol = new RegleVol();
                         regleVol.setIdRegleVol(resultSet.getInt("id_regle_vol"));
                         regleVol.setHeureMaxReservation(resultSet.getInt("heure_max_reservation"));
                         regleVol.setHeureMaxAnnulation(resultSet.getInt("heure_max_annulation"));
                         vol.setRegleVol(regleVol);
                     }
-                    
+    
                     VolDetails volDetails = new VolDetails();
                     volDetails.setIdVolDetails(resultSet.getInt("id_vol_prix"));
                     volDetails.setTypeSiege(new TypeSiege(resultSet.getInt("id_type_siege")));
                     volDetails.setPrix(resultSet.getDouble("prix"));
                     volDetails.setPlaceDispo(resultSet.getInt("place_dispo"));
-                    
+    
+                    // Calculer et définir les places restantes pour ce type de siège
+                    volDetails.setPlaceRestante(resultSet.getInt("place_restante"));
+    
                     vol.getVolDetails().add(volDetails);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+    
         return vol;
     }
 
@@ -249,14 +263,17 @@ public class VolService {
         List<Vol> vols = new ArrayList<>();
         StringBuilder queryBuilder = new StringBuilder("SELECT v.id_vol, v.id_avion, v.id_ville_depart, v.id_ville_destination, v.date_depart, v.date_arrive, "
                 + "vd.id_vol_prix, vd.id_type_siege, vd.prix, vd.place_dispo, "
-                + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation "
+                + "rv.id_regle_vol, rv.heure_max_reservation, rv.heure_max_annulation, "
+                + "(vd.place_dispo - COALESCE(SUM(CASE WHEN dr.id_type_siege = vd.id_type_siege THEN 1 ELSE 0 END), 0)) AS place_restante "
                 + "FROM vol v "
                 + "LEFT JOIN vol_details vd ON v.id_vol = vd.id_vol "
                 + "LEFT JOIN regle_vol rv ON v.id_vol = rv.id_vol "
+                + "LEFT JOIN reservation r ON v.id_vol = r.id_vol "
+                + "LEFT JOIN detail_reservation dr ON r.id_reservation = dr.id_reservation "
                 + "WHERE 1=1");
-
+    
         List<Object> parameters = new ArrayList<>();
-
+    
         if (searchCriteria.getAvion() != null && searchCriteria.getAvion().getIdAvion() != 0) {
             queryBuilder.append(" AND v.id_avion = ?");
             parameters.add(searchCriteria.getAvion().getIdAvion());
@@ -277,19 +294,21 @@ public class VolService {
             queryBuilder.append(" AND v.date_arrive <= ?");
             parameters.add(Timestamp.valueOf(searchCriteria.getDateArrive()));
         }
-
+    
+        queryBuilder.append(" GROUP BY v.id_vol, vd.id_vol_prix, vd.id_type_siege, rv.id_regle_vol, vd.place_dispo");
+    
         try (PreparedStatement statement = connection.prepareStatement(queryBuilder.toString())) {
             for (int i = 0; i < parameters.size(); i++) {
                 statement.setObject(i + 1, parameters.get(i));
             }
-
+    
             try (ResultSet resultSet = statement.executeQuery()) {
                 Map<Integer, Vol> volMap = new HashMap<>();
-
+    
                 while (resultSet.next()) {
                     int volId = resultSet.getInt("id_vol");
                     Vol vol = volMap.get(volId);
-
+    
                     if (vol == null) {
                         vol = new Vol();
                         vol.setIdVol(volId);
@@ -299,43 +318,51 @@ public class VolService {
                         vol.setDateDepart(resultSet.getTimestamp("date_depart").toLocalDateTime());
                         vol.setDateArrive(resultSet.getTimestamp("date_arrive").toLocalDateTime());
                         vol.setVolDetails(new ArrayList<>());
-
+    
                         RegleVol regleVol = new RegleVol();
                         regleVol.setIdRegleVol(resultSet.getInt("id_regle_vol"));
                         regleVol.setHeureMaxReservation(resultSet.getInt("heure_max_reservation"));
                         regleVol.setHeureMaxAnnulation(resultSet.getInt("heure_max_annulation"));
                         vol.setRegleVol(regleVol);
-
+    
                         volMap.put(volId, vol);
                     }
-
+    
                     VolDetails volDetails = new VolDetails();
                     volDetails.setIdVolDetails(resultSet.getInt("id_vol_prix"));
                     volDetails.setTypeSiege(new TypeSiege(resultSet.getInt("id_type_siege")));
                     volDetails.setPrix(resultSet.getDouble("prix"));
                     volDetails.setPlaceDispo(resultSet.getInt("place_dispo"));
-
+    
+                    // Calculer et définir les places restantes pour ce type de siège
+                    volDetails.setPlaceRestante(resultSet.getInt("place_restante"));
+    
                     vol.getVolDetails().add(volDetails);
                 }
-
+    
                 vols.addAll(volMap.values());
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+    
         return vols;
     }
 
     public static boolean reserveVol(Connection connection, Reservation reservation, List<DetailReservation> detailReservations) {
-        String checkAvailabilityQuery = "SELECT place_dispo FROM vol_details WHERE id_vol = ? AND id_type_siege = ?";
-        String getVolQuery = "SELECT vol.id_vol , regle_vol.id_vol , date_depart, heure_max_reservation FROM vol JOIN regle_vol ON vol.id_vol=regle_vol.id_vol WHERE vol.id_vol = ?";
-        String insertReservationQuery = "INSERT INTO reservation (id_vol , nombre_personnes, date_reservation, montant_total) VALUES (? , ?, ?, ?)";
+        String checkAvailabilityQuery = "SELECT vd.place_dispo, COALESCE(SUM(dr.nombre_personnes), 0) AS reserved_places " +
+                                         "FROM vol_details vd " +
+                                         "LEFT JOIN detail_reservation dr ON vd.id_vol = dr.id_vol AND vd.id_type_siege = dr.id_type_siege " +
+                                         "WHERE vd.id_vol = ? AND vd.id_type_siege = ? " +
+                                         "GROUP BY vd.place_dispo";
+        String getVolQuery = "SELECT vol.id_vol, regle_vol.id_vol, date_depart, heure_max_reservation " +
+                             "FROM vol JOIN regle_vol ON vol.id_vol = regle_vol.id_vol WHERE vol.id_vol = ?";
+        String insertReservationQuery = "INSERT INTO reservation (id_vol, nombre_personnes, date_reservation, montant_total) VALUES (?, ?, ?, ?)";
         String insertDetailReservationQuery = "INSERT INTO detail_reservation (id_reservation, nom_complet, id_type_siege, prix) VALUES (?, ?, ?, ?)";
-
+    
         try {
             connection.setAutoCommit(false);
-
+    
             // Get vol details
             Timestamp dateDepart = null;
             int heureMaxReservation = 0;
@@ -351,31 +378,34 @@ public class VolService {
                     }
                 }
             }
-
+    
             // Check reservation date
             Timestamp maxReservationDate = new Timestamp(dateDepart.getTime() - heureMaxReservation * 3600 * 1000);
             if (Timestamp.valueOf(reservation.getDateReservation()).after(maxReservationDate)) {
                 connection.rollback();
                 return false; // Reservation date is too late
             }
-
+    
             // Check availability
             Map<Integer, Integer> seatCounts = new HashMap<>();
             for (DetailReservation detail : detailReservations) {
                 int typeSiegeId = detail.getTypeSiege().getIdTypeSiege();
                 seatCounts.put(typeSiegeId, seatCounts.getOrDefault(typeSiegeId, 0) + 1);
             }
-
+    
             for (Map.Entry<Integer, Integer> entry : seatCounts.entrySet()) {
                 int typeSiegeId = entry.getKey();
                 int requiredSeats = entry.getValue();
-
+    
                 try (PreparedStatement checkStmt = connection.prepareStatement(checkAvailabilityQuery)) {
                     checkStmt.setInt(1, reservation.getIdVol());
                     checkStmt.setInt(2, typeSiegeId);
                     try (ResultSet rs = checkStmt.executeQuery()) {
                         if (rs.next()) {
-                            int availableSeats = rs.getInt("place_dispo");
+                            int totalSeats = rs.getInt("place_dispo");
+                            int reservedSeats = rs.getInt("reserved_places");
+                            int availableSeats = totalSeats - reservedSeats;
+    
                             if (availableSeats < requiredSeats) {
                                 connection.rollback();
                                 return false; // Not enough seats available for this type of seat
@@ -387,7 +417,7 @@ public class VolService {
                     }
                 }
             }
-
+    
             // Insert reservation
             try (PreparedStatement reservationStmt = connection.prepareStatement(insertReservationQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 reservationStmt.setInt(1, reservation.getIdVol());
@@ -395,12 +425,12 @@ public class VolService {
                 reservationStmt.setTimestamp(3, Timestamp.valueOf(reservation.getDateReservation()));
                 reservationStmt.setDouble(4, reservation.getMontantTotal());
                 reservationStmt.executeUpdate();
-
+    
                 try (ResultSet generatedKeys = reservationStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int reservationId = generatedKeys.getInt(1);
                         reservation.setIdReservation(reservationId);
-
+    
                         // Insert detail reservations
                         try (PreparedStatement detailStmt = connection.prepareStatement(insertDetailReservationQuery)) {
                             for (DetailReservation detail : detailReservations) {
@@ -418,7 +448,7 @@ public class VolService {
                     }
                 }
             }
-
+    
             connection.commit();
             return true;
         } catch (SQLException e) {

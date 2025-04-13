@@ -110,18 +110,16 @@
             const passengerDetails = document.getElementById('passengerDetails');
             const newPassenger = document.createElement('div');
             newPassenger.classList.add('form-group');
-            newPassenger.innerHTML = `
-                <label for="nomComplet_${passengerCount}">Nom Complet</label>
-                <input type="text" id="nomComplet_${passengerCount}" name="detailReservations[${passengerCount}].nomComplet" required>
-                <label for="typeSiege_${passengerCount}">Type de Siege</label>
-                <select id="typeSiege_${passengerCount}" name="detailReservations[${passengerCount}].typeSiege.idTypeSiege" required>
-                    <% for (TypeSiege typeSiege : typesSiege) { %>
-                    <option value="<%= typeSiege.getIdTypeSiege() %>"><%= typeSiege.getType() %></option>
-                    <% } %>
-                </select>
-                <label for="prix_${passengerCount}">Prix</label>
-                <input type="number" step="0.01" id="prix_${passengerCount}" name="detailReservations[${passengerCount}].prix" required>
-            `;
+            newPassenger.innerHTML = 
+                "<label for='nomComplet_" + passengerCount + "'>Nom Complet</label>" +
+                "<input type='text' id='nomComplet_" + passengerCount + "' name='detailReservations[" + passengerCount + "].nomComplet' required>" +
+                "<label for='typeSiege_" + passengerCount + "'>Type de Siege</label>" +
+                "<select id='typeSiege_" + passengerCount + "' name='detailReservations[" + passengerCount + "].typeSiege.idTypeSiege' required>" +
+                    "<% for (TypeSiege typeSiege : typesSiege) { %>" +
+                    "<option value='<%= typeSiege.getIdTypeSiege() %>'><%= typeSiege.getType() %></option>" +
+                    "<% } %>" +
+                "</select>";
+
             passengerDetails.appendChild(newPassenger);
             passengerCount++;
         }
