@@ -11,7 +11,7 @@ set TEMP_WAR_DIR=war_temp
 set TEMP_SRC_DIR=src_temp
 
 REM Chemin vers le dossier de deploiement de tomcat
-set WILDFLY_DEPLOY_DIR=C:\software\apache-tomcat-9.0.100\webapps
+set WILDFLY_DEPLOY_DIR=C:\software\apache-tomcat-9.0.104\webapps
 
 REM Verifie si le dossier build existe, sinon le cree
 if not exist "%BUILD_DIR%" (

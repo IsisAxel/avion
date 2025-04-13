@@ -180,6 +180,7 @@
                                     <th>ID Type Siege</th>
                                     <th>Prix</th>
                                     <th>Places Disponibles</th>
+                                    <th>Places Restante</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,6 +192,7 @@
                                     <td><%= details.getTypeSiege().getIdTypeSiege() %></td>
                                     <td><%= details.getPrix() %></td>
                                     <td><%= details.getPlaceDispo() %></td>
+                                    <td><%= details.getPlaceRestante() %></td>
                                 </tr>
                                 <%
                                     }

@@ -81,13 +81,16 @@ public class AdminController
                 ModelView mv = new ModelView("view/admin/home.jsp");
                 VolService.insertVolWithDetails(connection, vol, volDetails);
                 mv.addObject("vols", VolService.getAllVol(connection));
+                mv.addObject("avions", AvionService.getAllAvions(connection));
+                mv.addObject("type_sieges", TypeSiegeService.getAllTypeSiege(connection));
+                mv.addObject("villes", VilleService.getAllVilles(connection));
                 return mv;
             } catch (Exception e) {
                 e.printStackTrace();
                 ModelView modelView = new ModelView("view/admin/addVol.jsp");
                 modelView.addObject("error", "Erreur lors de l'insertion");
-                modelView.addObject("type_sieges", TypeSiegeService.getAllTypeSiege(connection));
                 modelView.addObject("avions", AvionService.getAllAvions(connection));
+                modelView.addObject("type_sieges", TypeSiegeService.getAllTypeSiege(connection));
                 modelView.addObject("villes", VilleService.getAllVilles(connection));
                 return modelView;
             }
